@@ -1,8 +1,6 @@
 package rps
 
-import java.util.*
-
-class Option(val byte: Int, val lookup: String, var beats: Option? = null)
+class Option(val byte: Byte, val lookup: String, var beats: Option? = null)
 {
 	companion object
 	{
@@ -24,20 +22,23 @@ class Option(val byte: Int, val lookup: String, var beats: Option? = null)
 			while(selected == null)
 			{
 				print("Enter your choice (R/P/S): ")
-				Scanner(System.`in`).use { sc ->
-					val answer = sc.nextLine().toUpperCase()
-					when
-					{
-						answer.contains(Rock.lookup) -> selected = Rock
-						answer.contains(Paper.lookup) -> selected = Paper
-						answer.contains(Scissors.lookup) -> selected = Scissors
-					}
+				
+				// Read, if null, restart
+				var answer: String = Workarounds.getInput()
+				
+				// Check and return relevant one
+				answer = answer.toUpperCase()
+				when
+				{
+					answer.contains(Rock.lookup) -> selected = Rock
+					answer.contains(Paper.lookup) -> selected = Paper
+					answer.contains(Scissors.lookup) -> selected = Scissors
 				}
 			}
-			return selected as Option
+			return selected
 		}
 		
-		fun byteToObject(byte: Int): Option?
+		fun byteToObject(byte: Byte): Option?
 		{
 			return when(byte)
 			{

@@ -29,13 +29,27 @@ class Client(address: String) : Session(), Closeable
 	override fun round(): RoundStatus
 	{
 		// Send it
-		ObjectOutputStream(server.getOutputStream()).use { stream -> stream.write(Option.ask().byte) }
+		val option = Option.ask()
+		val output = ObjectOutputStream(server.getOutputStream())
+		output.writeObject(option.byte)
 		
 		// Receive status
-		var ordinal: Int? = null
-		ObjectInputStream(server.getInputStream()).use { stream -> ordinal = stream.read() }
-		if(ordinal == null) error("Invalid round status received.")
+		print("Awaiting opponent's choice...")
+		val input = ObjectInputStream(server.getInputStream())
+		val ordinal = input.readObject() as Int
+		if(ordinal.toInt() == -1) error("Invalid round status received.")
+		else println("Received.")
 		
-		return RoundStatus.values()[ordinal as Int]
+		// Cleanup
+		output.close()
+		input.close()
+		
+		// Returned flipped server status
+		return when(RoundStatus.values()[ordinal.toInt()])
+		{
+			RoundStatus.Lost -> RoundStatus.Won
+			RoundStatus.Drawn -> RoundStatus.Drawn
+			RoundStatus.Won -> RoundStatus.Lost
+		}
 	}
 }

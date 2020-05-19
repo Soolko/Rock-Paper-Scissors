@@ -1,9 +1,6 @@
 package rps.server
 
 import rps.Option
-import rps.Option.Companion.Paper
-import rps.Option.Companion.Rock
-import rps.Option.Companion.Scissors
 import rps.Session
 import java.io.Closeable
 import java.io.IOException
@@ -34,14 +31,11 @@ class Server : Session(), Closeable
 	override fun round(): RoundStatus
 	{
 		// Get opponent choice
-		var opponent: Option? = null
-		
 		print("Awaiting response from opponent...")
-		ObjectInputStream(client.getInputStream()).use { stream -> Option.byteToObject(stream.read()) }
-		if(opponent == null)
-		{
-			error("Opponent sent invalid choice.")
-		}
+		val input = ObjectInputStream(client.getInputStream())
+		val opponent = Option.byteToObject(input.readObject() as Byte)
+		if(opponent == null) error("Opponent sent invalid choice.")
+		else println("Received.")
 		
 		// Get your choice
 		val yours = Option.ask()
@@ -53,7 +47,12 @@ class Server : Session(), Closeable
 			opponent.beats == yours -> RoundStatus.Lost
 			else -> RoundStatus.Drawn
 		}
-		ObjectOutputStream(client.getOutputStream()).use { stream -> stream.write(status.ordinal) }
+		val output = ObjectOutputStream(client.getOutputStream())
+		output.writeObject(status.ordinal)
+		
+		// Cleanup
+		input.close()
+		output.close()
 		
 		return status
 	}

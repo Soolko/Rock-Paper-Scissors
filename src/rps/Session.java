@@ -5,27 +5,24 @@ import rps.server.Server;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Scanner;
 
 public abstract class Session implements Closeable
 {
-	private static Session session;
-	public static Session getSession() { return session; }
-	
 	public static void main(String[] args) throws IOException
 	{
 		String address;
-		try(final Scanner sc = new Scanner(System.in))
-		{
-			System.out.print("Connect to (Leave blank for host): ");
-			address = sc.nextLine().trim();
-		}
 		
+		System.out.print("Connect to (Leave blank for host): ");
+		address = Workarounds.getInput().trim();
+		
+		final Session session;
 		if(address.isEmpty()) session = host();
 		else session = connect(address);
 		
 		RoundStatus status = session.round();
 		session.close();
+		
+		System.out.println(status.message);
 	}
 	
 	private static Session host() throws IOException { return new Server(); }
@@ -33,5 +30,14 @@ public abstract class Session implements Closeable
 	
 	public abstract RoundStatus round();
 	
-	public enum RoundStatus { Won, Lost, Drawn }
+	public enum RoundStatus
+	{
+		Won("You won."),
+		Drawn("It's a draw."),
+		Lost("You lost.");
+		
+		final String message;
+		
+		RoundStatus(String message) { this.message = message; }
+	}
 }
